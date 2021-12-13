@@ -1,3 +1,5 @@
+import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -17,9 +19,22 @@ public class ReaderWriterProblem {
     static boolean append;
 
     static class Read implements Runnable {
+
         @Override
         public void run() {
             try {
+                JFrame frame = new JFrame();
+                JPanel panel = new JPanel();
+                JTextArea area = new JTextArea();
+
+                area.setSize(450,250);
+                panel.add(area);
+
+                frame.add(panel);
+                frame.setVisible(true);
+                frame.setSize(450, 250);
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
                 y.acquire();
                 readSem.acquire();
                 x.acquire();
@@ -30,15 +45,32 @@ public class ReaderWriterProblem {
                 readSem.release();
                 y.release();
 
+                panel.setName(Thread.currentThread().getName());
                 // Critical section when reading is performed
                 System.out.println("Thread " + Thread.currentThread().getName() + " is reading the file");
-                read();
+                area.setText("Thread " + Thread.currentThread().getName() + " is reading the file \n");
+
+                //READ FILE
+                BufferedReader br = null;
+                try {
+                    br = new BufferedReader(new FileReader("D:/Code/Lamija/Java/readers-writers-problem/src/test"));
+                    String contentLine = br.readLine();
+                    while (contentLine != null) {
+                        area.setText(contentLine);
+                        contentLine = br.readLine();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
                 Thread.sleep(1500);
                 System.out.println("Thread " + Thread.currentThread().getName() + " finished reading the file");
-
+                area.setText("Thread " + Thread.currentThread().getName() + " finished reading the file \n");
                 x.acquire();
                 readerCount--;
                 System.out.println("Number of Readers Left: " + readerCount);
+                area.setText("Number of Readers Left: " + readerCount + "\n");
                 if (readerCount == 0)// check for last reader
                     writeSem.release();
                 x.release();
@@ -47,71 +79,35 @@ public class ReaderWriterProblem {
                 System.out.println(e.getMessage());
             }
         }
-
-
-
-        //Citanje iz 2 kopije fajla. Svaki citac pristupa random fajlu..
-//        private void read() {
-//            BufferedReader br = null;
-//            Random rgen = new Random();
-//            try {
-//                int num1 = 1 + rgen.nextInt(2);
-//                if (num1 == 1) {
-//                    br = new BufferedReader(new FileReader("/run/media/lamija/9C0863F60863CDB8/Code/Semaphores/RW-Problem/src/test"));
-//                } else if (num1 == 2) {
-//                    br = new BufferedReader(new FileReader("/run/media/lamija/9C0863F60863CDB8/Code/Semaphores/RW-Problem/src/test1"));
-//                }
-//                while (true) {
-//                    String line = br.readLine();
-//                    if (line == null)
-//                        break;
-//                    System.out.println(line);
-//                }
-//
-//            } catch (FileNotFoundException e) {
-//                System.err.println("The file you specified does not exist.");
-//            } catch (IOException e) {
-//                System.err.println("Some other IO exception occured. Message: " + e.getMessage());
-//            } finally {
-//                try {
-//                    if (br != null)
-//                        br.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//    }
-
-        private void read() {
-            BufferedReader br = null;
-            try {
-                br = new BufferedReader(new FileReader("/run/media/lamija/9C0863F60863CDB8/Code/Semaphores/RW-Problem/src/test"));
-                String contentLine = br.readLine();
-                while (contentLine != null) {
-                    System.out.println(contentLine);
-                    contentLine = br.readLine();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
     }
+
 
     static class Write implements Runnable {
         @Override
         public void run() {
             try {
+                JFrame frame = new JFrame();
+                JPanel panel = new JPanel();
+                JTextArea area = new JTextArea();
+
+                area.setSize(450,250);
+                panel.add(area);
+
+                frame.add(panel);
+                frame.setVisible(true);
+                frame.setSize(450, 250);
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
                 readSem.acquire();// locking the readers
                 writeSem.acquire();// reserving the place for the writers
 
-                System.out.println(
-                        "Thread " + Thread.currentThread().getName() + " is writing to the file. Enter the String: ");
+                System.out.println("Thread " + Thread.currentThread().getName() + " is writing to the file. Enter the String: ");
+                area.setText("Thread " + Thread.currentThread().getName() + " is writing to the file. Enter the String: \n");
                 write();
                 Thread.sleep(2500);
 
-                System.out.println("Thread " + Thread.currentThread().getName() + " finished writing to the file");
+                System.out.println("Thread " + Thread.currentThread().getName() + " finished writing to the file \n");
+                area.setText("Thread " + Thread.currentThread().getName() + " finished writing to the file \n");
                 writeSem.release();
                 readSem.release();
             } catch (InterruptedException e) {
@@ -123,50 +119,34 @@ public class ReaderWriterProblem {
             try {
                 append = true;
                 PrintWriter pw = new PrintWriter(
-                        new FileWriter("/run/media/lamija/9C0863F60863CDB8/Code/Semaphores/RW-Problem/src/test", append));
-                PrintWriter pw1 = new PrintWriter(
-                        new FileWriter("/run/media/lamija/9C0863F60863CDB8/Code/Semaphores/RW-Problem/src/test1", append));
+                        new FileWriter("D:/Code/Lamija/Java/readers-writers-problem/src/test", append));
 
                 while (true) {
                     String line = sc.nextLine();
                     if (line.contains("THE END"))
                         break;
-
                     pw.println(line);
-                    pw1.println(line);
                 }
 
                 pw.close();
-                pw1.close();
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             sc.close();
-
         }
     }
 
     public static void main(String[] args) throws Exception {
-        // creating reader and writer
         Read read = new Read();
         Write write = new Write();
         Thread t1 = new Thread(read);
         t1.setName("Prvi");
 
-        Thread t2 = new Thread(read);
+        Thread t2 = new Thread(write);
         t2.setName("Drugi");
 
-        Thread t3 = new Thread(write);
-        t3.setName("Treci");
-
-        Thread t4 = new Thread(read);
-        t4.setName("Cetvrti");
 
         t1.start();
         t2.start();
-        t3.start();
-        t4.start();
     }
 }
