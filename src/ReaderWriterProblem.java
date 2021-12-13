@@ -140,10 +140,10 @@ public class ReaderWriterProblem {
         Read read = new Read();
         Write write = new Write();
         Thread t1 = new Thread(read);
-        t1.setName("Prvi");
+        t1.setName("Reader");
 
         Thread t2 = new Thread(write);
-        t2.setName("Drugi");
+        t2.setName("Writer");
 
 
         t1.start();
